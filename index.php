@@ -1,47 +1,100 @@
+<?php
+// Paramètres de la page
+$page_title = "Page de maintenance"; // Titre de la page
+$subtitle = "Sous-titre"; // Sous-titre
+$description = "Bienvenue et désolé pour le dérangement, ce n'est que temporaire."; // Description
+$illustration_text = "ILLUSTRATION"; // Texte de l'illustration
+$footer_text = "FOOTER - Tous droits réservés DVWMM 2025."; // Texte du pied de page
+
+// Traitement du formulaire
+$email = ""; // Initialiser la variable email
+$anti_robot = ""; // Initialiser la variable anti-robot
+$message = ""; // Initialiser la variable message
+
+// Déclaration des constantes
+define('ADMIN_EMAIL', 'greta48.dwwm@gmail.com');
+define('FROM_EMAIL', 'kevin.sicre.dwwm48@gmail.com'); // Remplacer par votre adresse
+
+// Fonction de sanitisation des entrées
+function sanitizeInput($data) {
+    return htmlspecialchars(stripslashes(trim($data)));
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Sanitiser les données soumises
+    $email = sanitizeInput($_POST['email']);
+    $anti_robot = sanitizeInput($_POST['anti-robot']);
+    
+    // Vérifier si la réponse anti-robot est correcte
+    if ($anti_robot == "7") {
+        // Envoyer un message de confirmation
+        $message = "Votre demande a bien été prise en compte !";
+        // Envoyer un email à l'utilisateur
+        mail($email, "Votre demande a été prise en compte", "Merci, nous vous informerons dès que le site est de nouveau en ligne.", "From: " . FROM_EMAIL . "\r\nCc: " . ADMIN_EMAIL);
+        // Alerter l'administrateur de la demande validée
+        mail(ADMIN_EMAIL, "Demande valide reçue", "L'utilisateur $email a validé le formulaire.", "From: " . FROM_EMAIL);
+    } else {
+        // Pas de message d'erreur, "Silence is golden"
+        $message = ""; // Aucun message affiché si l'utilisateur est un robot
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance en cours</title>
+    <title><?= $page_title; ?></title>
+    <link rel="stylesheet" href="style.css">
     <script>
-        // Activer le bouton envoyer uniquement si l'utilisateur coche la case
-        function activerBouton() {
-            const bouton = document.getElementById('btn-envoyer');
-            const checkbox = document.getElementById('anti-robot-checkbox');
-            bouton.disabled = !checkbox.checked;
-        }
-    </script>
-    <script>
-        // Vérifier le contrôle anti-robot (simple calcul)
-        function verifierCaptcha() {
-            const reponse = document.getElementById('anti-robot').value;
-            return reponse == "7"; // Exemple : 5 + 2 = 7
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const antiRobotInput = document.getElementById('anti-robot');
+            const submitButton = document.getElementById('submit-button');
+            
+            antiRobotInput.addEventListener('input', function() {
+                submitButton.disabled = antiRobotInput.value !== "7";
+            });
+        });
     </script>
 </head>
 <body>
     <div class="container">
-        <h1>Page de maintenance</h1>
-        <p>Nous travaillons actuellement sur une mise à jour importante. Merci pour votre patience.</p>
-        <form method="post" action="traitement.php" onsubmit="return verifierCaptcha();">
-            <div>
-                <label for="email">Votre email :</label>
-                <input type="email" name="email" id="email" required placeholder="email@example.com">
-            </div>
-            <div>
-                <label for="anti-robot">Question anti-robot : 5 + 2 = </label>
-                <input type="text" name="anti-robot" id="anti-robot" required>
-            </div>
-            <div>
-                <input type="checkbox" id="anti-robot-checkbox" onchange="activerBouton()">
-                <label for="anti-robot-checkbox">Je ne suis pas un robot</label>
-            </div>
-            <button type="submit" id="btn-envoyer" disabled>Envoyer</button>
-        </form>
+        <header>
+            <h1><?= $page_title; ?></h1>
+        </header>
+        
+        <section class="content">
+        <div class="illustration-container">
+    <div class="text-content">
+        <h2><?= $subtitle; ?></h2>
+        <p><?= $description; ?></p>
     </div>
-    <footer>
-        <p>FOOTER - Tout droits réservés DVWWM 2025</p>
-    </footer>
+    <div class="illustration">
+        <img src="./image/maintenace.jpg" alt="Illustration" />
+    </div>
+</div>
+        </section>
+
+        <section class="form-section">
+            <?php if (!empty($message)) : ?>
+                <p><?= $message; ?></p>
+            <?php endif; ?>
+            
+            <form action="index.php" method="POST">
+                <label for="email">Votre email :</label>
+                <input type="email" id="email" name="email" placeholder="email@email.com" value="<?= $email; ?>" required>
+                
+                <!-- Question anti-robot : 5 + 2 -->
+                <label for="anti-robot">Question anti-robot : 5 + 2</label>
+                <input type="text" id="anti-robot" name="anti-robot" value="<?= $anti_robot; ?>" required>
+                
+                <button type="submit" id="submit-button" disabled>ENVOYER</button>
+            </form>
+        </section>
+        
+        <footer>
+            <p><?= $footer_text; ?></p>
+        </footer>
+    </div>
 </body>
 </html>
